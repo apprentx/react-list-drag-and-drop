@@ -8,6 +8,11 @@ export interface RLDDItem {
   id: number;
 }
 
+export interface RLDDStateOnDrop {
+  draggedId: number;
+  hoveredId: number;
+}
+
 export interface RLDDProps {
   cssClasses?: string;
   inlineStyle?: {};
@@ -17,6 +22,7 @@ export interface RLDDProps {
   items: Array<RLDDItem>;
   itemRenderer(item: RLDDItem, index: number): JSX.Element;
   onChange(items: Array<RLDDItem>): void;
+  onDrop?(state: RLDDStateOnDrop): void;
 }
 
 export interface RLDDState {
@@ -26,7 +32,7 @@ export interface RLDDState {
 }
 
 export default class RLDD extends React.Component<RLDDProps, RLDDState> {
-    
+
   static defaultProps: Partial<RLDDProps> = {
     cssClasses: '',
     inlineStyle: {},
@@ -34,7 +40,7 @@ export default class RLDD extends React.Component<RLDDProps, RLDDState> {
     threshold: 15,
     dragDelay: 250
   };
-  
+
   readonly state: RLDDState  = { draggedId: -1, hoveredId: -1, draggedItemDimensions: { width: 0, height: 0 } };
 
   private logic: RLDDLogic;
@@ -131,7 +137,14 @@ items: ${props.items.map(item => item.id).toString()}`;
   }
 
   private handleDragEnd = () => {
+    const { onDrop } = this.props;
+    const { draggedId, hoveredId } = this.state;
+
     this.setState({ draggedId: -1, hoveredId: -1 });
+
+    if (onDrop) {
+        onDrop({ draggedId, hoveredId });
+    }
   }
 
   private getNewItems(): RLDDItem[] | undefined {
